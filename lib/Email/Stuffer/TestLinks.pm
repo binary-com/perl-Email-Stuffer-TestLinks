@@ -38,39 +38,36 @@ install_modifier 'Email::Stuffer', after => send_or_die => sub {
     $self->email->walk_parts(
         sub {
             my ($part) = @_;
-            if ( $part->content_type && $part->content_type =~ /text\/html/i ) {
-                my $dom = Mojo::DOM->new( $part->body );
-                my $links = $dom->find('a')->map( attr => 'href' )->compact;
+            if ($part->content_type && $part->content_type =~ /text\/html/i) {
+                my $dom = Mojo::DOM->new($part->body);
+                my $links = $dom->find('a')->map(attr => 'href')->compact;
 
                 # Exclude anchors, mailto
-                push( @urls, grep { !/^(#|mailto)/ } @$links );
+                push(@urls, grep { !/^(#|mailto)/ } @$links);
                 $body = $part->body;
             }
-        }
-    );
+        });
 
     my %unique_urls = map { $_, 1 } @urls;
 
-    for my $url ( sort keys %unique_urls ) {
+    for my $url (sort keys %unique_urls) {
         my $tx  = $ua->get($url);
         my $err = '';
 
-        if ( $tx->success ) {
+        if ($tx->success) {
             my $res = $tx->result;
 
-            if ( $res->code !~ /^2\d\d/ ) {
+            if ($res->code !~ /^2\d\d/) {
                 $err = "HTTP code was " . $res->code;
-            }
-            else {
+            } else {
                 my $title = $res->dom->at('title')->text;
                 $err = "Page title contains text '$1'"
-                  if $title =~ /(error|not found)/i;
+                    if $title =~ /(error|not found)/i;
             }
-        }
-        else {
+        } else {
             $err = "Could not retrieve URL: " . $tx->error->{message};
         }
-        ok( !$err, "Link in email works ($url)" ) or diag($err);
+        ok(!$err, "Link in email works ($url)") or diag($err);
     }
 
 };
