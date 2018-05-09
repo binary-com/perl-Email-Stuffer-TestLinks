@@ -4,6 +4,9 @@ use Test::Builder::Tester tests => 10;
 use Test::Most;
 use Email::Stuffer;
 use Email::Stuffer::TestLinks;
+use Email::Sender::Transport::Test;
+
+my $transport = Email::Sender::Transport::Test->new;
 
 sub make_msg {
     my @links = @_;
@@ -22,7 +25,7 @@ sub make_teststr {
 sub send_it {
     my $msg = shift;
     Email::Stuffer->from('sender@example.com')->to('recipient@example.org')
-      ->html_body($msg)->send_or_die;
+      ->html_body($msg)->transport($transport)->send_or_die;
 }
 
 my @urls = ();
