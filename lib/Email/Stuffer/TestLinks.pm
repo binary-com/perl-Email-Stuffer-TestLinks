@@ -21,7 +21,7 @@ Email::Stuffer::TestLinks - validates links in HTML emails sent by Email::Stuffe
 =head1 DESCRIPTION
 
 When this module is included in a test, it parse HTML links in every email sent through check Email::Stuffer.
-For now, only html links are checked. Each link must be valid resource and the returned page title must not contain 'error' or 'not found'.
+Only html links (<a href="xyz"...) are checked. Each link must be valid resource and the returned page title must not contain 'error' or 'not found'.
 
 =cut
 

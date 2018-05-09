@@ -1,7 +1,6 @@
 use strict;
 use warnings;
-
-use Test::Builder::Tester tests => 9;
+use Test::Builder::Tester tests => 10;
 use Test::Most;
 use Email::Stuffer;
 use Email::Stuffer::TestLinks;
@@ -74,3 +73,10 @@ test_test( title => "Fails for garbage url (@urls)", skip_err => 1 );
 test_out( make_teststr('https://www.google.com') );
 send_it( make_msg( 'https://www.google.com', 'https://www.google.com' ) );
 test_test("Does not re-check duplicate URLs");
+
+@urls = ('https://en.m.wikipedia.org/wiki/Error');
+test_out("not ok 1 - Link in email works ($urls[0])");
+send_it( make_msg(@urls) );
+test_test( title => "Fails for page with title containing 'error' (@urls)", skip_err => 1 );
+
+
