@@ -12,5 +12,6 @@ version 0.010
 
 # DESCRIPTION
 
-When this module is included in a test, it parse HTML links in every email sent through check Email::Stuffer.
-Only html links (<a href="xyz"...) are checked. Each link must be valid resource and the returned page title must not contain 'error' or 'not found'.
+When this module is included in a test, it parses HTML links (<a href="xyz"...) in every email sent through 
+Email::Stuffer->send_or_die(). Each URI must a successful response code and the returned page title must not 
+contain 'error' or 'not found'.
