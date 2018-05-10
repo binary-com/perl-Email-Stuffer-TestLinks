@@ -43,24 +43,23 @@ install_modifier 'Email::Stuffer', after => send_or_die => sub {
                 my $links = $dom->find('a')->map(attr => 'href')->compact;
 
                 # Exclude anchors, mailto
-                $urls{$_} = 1 for ( grep { !/^mailto:/ } @$links );
+                $urls{$_} = 1 for (grep { !/^mailto:/ } @$links);
                 $body = $part->body;
             }
         });
-    
+
     for my $url (sort keys %urls) {
 
         my $err = '';
-        
-        if ( $url =~ /^[#\/]/ ) {
+
+        if ($url =~ /^[#\/]/) {
             $err = "$url is not a valid URL for an email";
-        }
-        else {
-            my $tx  = $ua->get($url);
-    
+        } else {
+            my $tx = $ua->get($url);
+
             if ($tx->success) {
                 my $res = $tx->result;
-    
+
                 if ($res->code !~ /^2\d\d/) {
                     $err = "HTTP code was " . $res->code;
                 } else {
