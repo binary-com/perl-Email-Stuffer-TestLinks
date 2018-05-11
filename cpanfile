@@ -1,14 +1,15 @@
-requires "Class::Method::Modifiers" => "0";
-requires "Email::Stuffer" => "0";
-requires "Mojo::UserAgent" => "0";
-requires "Test::Most" => "0";
+requires "Class::Method::Modifiers";
+requires "Email::Stuffer";
+requires "Mojolicious", "6.00";
+requires "Mojo::UserAgent";
+requires "Test::Most";
 
 on 'test' => sub {
-  requires "Test::Builder::Tester" => "0";
-  requires "Test::More" => "0";
-  requires "Email::Sender::Transport::Test" => "0";
+  requires "Test::Builder::Tester";
+  requires "Test::More";
+  requires "Email::Sender::Transport::Test";
 };
 
 on 'configure' => sub {
-  requires "ExtUtils::MakeMaker" => "0";
+  requires "ExtUtils::MakeMaker";
 };
