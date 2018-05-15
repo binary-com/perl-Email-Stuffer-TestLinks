@@ -3,7 +3,7 @@ package Email::Stuffer::TestLinks;
 use strict;
 use warnings;
 
-our $VERSION = '0.010';
+our $VERSION = 0.020;
 
 use Test::Most;
 use Mojolicious 6.00;
@@ -35,17 +35,15 @@ install_modifier 'Email::Stuffer', after => send_or_die => sub {
     my $ua = Mojo::UserAgent->new(max_redirects => 10, connect_timeout => 5);
 
     my %urls;
-    my $body;
     $self->email->walk_parts(
         sub {
             my ($part) = @_;
-            next unless ($part->content_type && $part->content_type =~ /text\/html/i);
+            return unless ($part->content_type && $part->content_type =~ /text\/html/i);
             my $dom = Mojo::DOM->new($part->body);
             my $links = $dom->find('a')->map(attr => 'href')->compact;
 
             # Exclude anchors, mailto
             $urls{$_} = 1 for (grep { !/^mailto:/ } @$links);
-            $body = $part->body;
         });
 
     for my $url (sort keys %urls) {
