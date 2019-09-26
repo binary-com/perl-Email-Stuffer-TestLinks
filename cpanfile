@@ -8,6 +8,7 @@ requires "IO::Async::SSL";
 requires "Future::Utils";
 
 on 'test' => sub {
+  requires "Dist::Zilla::App::Command::xtest";
   requires "Test::Builder::Tester";
   requires "Test::More";
   requires "Email::Sender::Transport::Test";
