@@ -5,7 +5,7 @@ use warnings;
 
 our $VERSION = 0.020;
 
-use Test::Most;
+use Test::More;
 use Mojo::DOM;
 use Email::Stuffer;
 use Class::Method::Modifiers qw/ install_modifier /;

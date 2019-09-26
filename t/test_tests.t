@@ -1,6 +1,7 @@
 use strict;
 use warnings;
-use Test::Most;
+use Test::More;
+use Test::Exception;
 use Test::Builder;
 use Test::Builder::Tester;
 use Email::Stuffer;
@@ -65,6 +66,10 @@ test_test(title => "Fails for page with title containing 'error'", skip_err => 1
 test_out("ok 1 - sent email ok");
 lives_ok { send_it(make_msg(['mailto:someone@example.com'],'http')) } "sent email ok";
 test_test("mailto links are excluded");
+
+test_out('ok 1 - http link works (https://www.google.com/favicon.ico)');
+send_it(make_msg(['https://www.google.com/favicon.ico'],'http'));
+test_test('Validates image');
 
 test_out('not ok 1 - image link https://www.google.com does not work - Unexpected content type: text/html');
 send_it(make_msg(['https://www.google.com'],'image'));
