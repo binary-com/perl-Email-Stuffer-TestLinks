@@ -4,6 +4,7 @@ requires "Mojolicious", "6.00";
 requires "Test::Most";
 requires "IO::Async::Loop";
 requires "Net::Async::HTTP";
+requires "IO::Async::SSL";
 requires "Future::Utils";
 
 on 'test' => sub {
