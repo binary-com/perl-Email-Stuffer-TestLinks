@@ -1,8 +1,10 @@
 requires "Class::Method::Modifiers";
 requires "Email::Stuffer";
 requires "Mojolicious", "6.00";
-requires "Mojo::UserAgent";
 requires "Test::Most";
+requires "IO::Async::Loop";
+requires "Net::Async::HTTP";
+requires "Future::Utils";
 
 on 'test' => sub {
   requires "Test::Builder::Tester";
