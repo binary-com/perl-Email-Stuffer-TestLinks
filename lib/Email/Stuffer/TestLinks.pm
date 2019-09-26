@@ -11,6 +11,7 @@ use Email::Stuffer;
 use Class::Method::Modifiers qw/ install_modifier /;
 use IO::Async::Loop;
 use Net::Async::HTTP;
+use IO::Async::SSL;
 use URI;
 use Future::Utils qw( fmap_void );
 
