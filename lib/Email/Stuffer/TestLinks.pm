@@ -25,10 +25,11 @@ Email::Stuffer>send_or_die()
 
 =head1 DESCRIPTION
 
-When this module is included in a test, it parses HTML links (<a href="xyz"...)
-in every email sent through Email::Stuffer->send_or_die(). Each URI must get a
-successful response code (200 range) and the returned pagetitle must not contain
-'error' or 'not found'.
+When this module is included in a test, it parses http links (<a href="xyz">...</a>)
+and image links (<img src="xyz">) in every email sent through Email::Stuffer->send_or_die(). 
+Each URI must be  get a successful response code (200 range). 
+Page title must not contain 'error' or 'not found' for text/html content.
+Image links must return an image content type.
 
 =cut
 
@@ -66,18 +67,18 @@ install_modifier 'Email::Stuffer', after => send_or_die => sub {
                   
                 return Future->fail("Response code was ".$response->code) if ($response->code !~ /^2\d\d/);                    
                   
-               if ($response->content_type eq 'text/html') {
+                if ($response->content_type eq 'text/html') {
                    my $dom = Mojo::DOM->new($response->decoded_content);
                    if ( my $title = $dom->at('title') ) {
                         return Future->fail( "Page title contains text '$1'") if $title->text =~ /(error|not found)/i;
                    }
-               };
+                };
                
-               if ( $type eq 'image' ) {
+                if ( $type eq 'image' ) {
                    return Future->fail( "Unexpected content type: ".$response->content_type ) unless $response->content_type =~ /^image\//;
-               }
+                }
                
-               return Future->done;
+                return Future->done;
             } )
             ->transform(
                 done => sub {
