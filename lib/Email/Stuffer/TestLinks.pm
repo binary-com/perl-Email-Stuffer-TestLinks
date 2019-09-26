@@ -6,10 +6,13 @@ use warnings;
 our $VERSION = 0.020;
 
 use Test::Most;
-use Mojolicious 6.00;
-use Mojo::UserAgent;
+use Mojo::DOM;
 use Email::Stuffer;
 use Class::Method::Modifiers qw/ install_modifier /;
+use IO::Async::Loop;
+use Net::Async::HTTP;
+use URI;
+use Future::Utils qw( fmap_void );
 
 =head1 SYNOPSIS
 
@@ -32,45 +35,63 @@ successful response code (200 range) and the returned pagetitle must not contain
 install_modifier 'Email::Stuffer', after => send_or_die => sub {
 
     my $self = shift;
-    my $ua = Mojo::UserAgent->new(max_redirects => 10, connect_timeout => 5);
-
+    
     my %urls;
     $self->email->walk_parts(
         sub {
             my ($part) = @_;
             return unless ($part->content_type && $part->content_type =~ /text\/html/i);
             my $dom = Mojo::DOM->new($part->body);
-            my $links = $dom->find('a')->map(attr => 'href')->compact;
+            push @{$urls{http}}, $dom->find('a')->map(attr => 'href')->compact->grep(sub {$_ !~ /^mailto:/})->uniq->to_array->@*;
+            push @{$urls{image}}, $dom->find('img')->map(attr => 'src')->compact->uniq->to_array->@*;
+    });
+     
+    my @data = map { my $type = $_; map { [ $type, $_ ] } $urls{$type}->@* } keys %urls;
 
-            # Exclude anchors, mailto
-            $urls{$_} = 1 for (grep { !/^mailto:/ } @$links);
-        });
-
-    for my $url (sort keys %urls) {
-
-        my $err = '';
-
-        if ($url =~ /^[#\/]/) {
-            $err = "$url is not a valid URL for an email";
-        } else {
-            my $tx = $ua->get($url);
-
-            if ($tx->success) {
-                my $res = $tx->result;
-
-                if ($res->code !~ /^2\d\d/) {
-                    $err = "HTTP code was " . $res->code;
-                } else {
-                    my $title = $res->dom->at('title')->text;
-                    $err = "Page title contains text '$1'"
-                        if $title =~ /(error|not found)/i;
-                }
-            } else {
-                $err = "Could not retrieve URL: " . $tx->error->{message};
-            }
+    my $loop = IO::Async::Loop->new();
+    $loop->add( my $http = Net::Async::HTTP->new( max_connections_per_host=>3 ) );
+    
+    ( fmap_void {
+       my ($type, $url) = @$_;
+    
+        my $uri = URI->new($url);
+        unless ( $uri->scheme ) {
+            fail "$type link $url is an invalid uri";
+            return Future->done;
         }
-        ok(!$err, "Link in email works ($url)") or diag($err);
-    }
+    
+        $http->GET( URI->new($uri) )
+            ->then( sub {
+                my $response = shift;
+                  
+                return Future->fail("Response code was ".$response->code) if ($response->code !~ /^2\d\d/);                    
+                  
+               if ($response->content_type eq 'text/html') {
+                   my $dom = Mojo::DOM->new($response->decoded_content);
+                   if ( my $title = $dom->at('title') ) {
+                        return Future->fail( "Page title contains text '$1'") if $title->text =~ /(error|not found)/i;
+                   }
+               };
+               
+               if ( $type eq 'image' ) {
+                   return Future->fail( "Unexpected content type: ".$response->content_type ) unless $response->content_type =~ /^image\//;
+               }
+               
+               return Future->done;
+            } )
+            ->transform(
+                done => sub {
+                    pass "$type link works ($url)";
+                },
+                fail => sub {
+                    my $failure = shift;
+                    fail "$type link $url does not work - $failure";
+                }
+            )
+            ->else(
+                sub { Future->done }
+            )
+    } foreach => \@data, concurrent => 10 )->get;        
 
 };
 
