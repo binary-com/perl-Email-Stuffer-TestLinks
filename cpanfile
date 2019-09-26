@@ -11,6 +11,7 @@ on 'test' => sub {
   requires "Dist::Zilla::App::Command::xtest";
   requires "Test::Builder::Tester";
   requires "Email::Sender::Transport::Test";
+  requires "Test::Exception";
 };
 
 on 'configure' => sub {
