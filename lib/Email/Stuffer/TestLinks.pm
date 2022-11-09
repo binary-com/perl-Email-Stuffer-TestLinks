@@ -3,7 +3,7 @@ package Email::Stuffer::TestLinks;
 use strict;
 use warnings;
 
-our $VERSION = "0.03";
+our $VERSION = '0.04';
 
 use Test::More;
 use Mojo::DOM;
